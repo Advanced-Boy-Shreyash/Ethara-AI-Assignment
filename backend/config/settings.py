@@ -13,6 +13,20 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost:3000').split(',')
 
+# Auto-prepend https:// if someone enters a bare domain in env vars
+def _ensure_scheme(origins):
+    fixed = []
+    for o in origins:
+        o = o.strip()
+        if not o:
+            continue
+        if not o.startswith('http://') and not o.startswith('https://'):
+            o = 'https://' + o
+        fixed.append(o)
+    return fixed
+
+CSRF_TRUSTED_ORIGINS = _ensure_scheme(CSRF_TRUSTED_ORIGINS)
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -117,7 +131,7 @@ SIMPLE_JWT = {
 }
 
 # CORS
-CORS_ALLOWED_ORIGINS = os.getenv(
-    'CORS_ALLOWED_ORIGINS', 'http://localhost:3000'
-).split(',')
+CORS_ALLOWED_ORIGINS = _ensure_scheme(
+    os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+)
 CORS_ALLOW_CREDENTIALS = True
