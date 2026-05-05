@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "postbuild": "node -e \"const fs=require('fs');try{fs.cpSync('.next/static','.next/standalone/.next/static',{recursive:true});fs.cpSync('public','.next/standalone/public',{recursive:true});console.log('Standalone assets copied.')}catch(e){console.warn('postbuild skip:',e.message)}\"",
+    "start": "node .next/standalone/server.js",
     "lint": "eslint"
   },
   "dependencies": {
