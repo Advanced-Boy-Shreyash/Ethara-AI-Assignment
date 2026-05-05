@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
-import { formatDate, isOverdue, getInitials, getAvatarColor } from '@/lib/utils';
+import { useToast } from '@/context/ToastContext';
+import { formatDate, isOverdue, getInitials, getAvatarColor, parseApiError } from '@/lib/utils';
 import { ClipboardList, Zap, CheckCircle2, AlertTriangle, Calendar, FolderOpen, Eye } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -10,6 +11,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const toast = useToast();
 
   useEffect(() => {
     async function load() {
@@ -22,7 +24,9 @@ export default function DashboardPage() {
         setStats(statsRes.data);
         setTasks(Array.isArray(tasksRes.data) ? tasksRes.data : tasksRes.data.results || []);
         setProjects(Array.isArray(projectsRes.data) ? projectsRes.data : projectsRes.data.results || []);
-      } catch (err) { console.error('Dashboard load error:', err); }
+      } catch (err) {
+        toast.error(parseApiError(err, 'Failed to load dashboard data.'));
+      }
       setLoading(false);
     }
     load();

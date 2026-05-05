@@ -3,7 +3,8 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import { formatDate, isOverdue, getInitials, getAvatarColor } from '@/lib/utils';
+import { useToast } from '@/context/ToastContext';
+import { formatDate, isOverdue, getInitials, getAvatarColor, parseApiError } from '@/lib/utils';
 import {
   Play, Eye, CheckCircle2, RotateCcw, Trash2, Plus, Users,
   ListTodo, Calendar, ChevronLeft, ChevronRight, Undo2, AlertTriangle
@@ -47,6 +48,7 @@ export default function ProjectDetailPage({ params }) {
   const { id } = use(params);
   const { user } = useAuth();
   const router = useRouter();
+  const toast = useToast();
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,10 +106,10 @@ export default function ProjectDetailPage({ params }) {
       setShowTaskModal(false);
       setTaskForm({ title: '', description: '', priority: 'MEDIUM', status: 'TODO', due_date: '', assignee_id: '' });
       setEditingTask(null);
+      toast.success(editingTask ? 'Task updated successfully.' : 'Task created successfully.');
       loadData();
     } catch (err) {
-      const data = err.response?.data;
-      setError(data ? (typeof data === 'string' ? data : Object.values(data).flat().join(' ')) : 'Failed to save task.');
+      setError(parseApiError(err, 'Failed to save task.'));
     }
     setSaving(false);
   };
@@ -117,7 +119,7 @@ export default function ProjectDetailPage({ params }) {
       await api.patch(`/tasks/projects/${id}/tasks/${task.id}/`, { status: newStatus });
       loadData();
     } catch (err) {
-      console.error('Status change failed:', err);
+      toast.error(parseApiError(err, 'Failed to update task status.'));
     }
   };
 
@@ -156,9 +158,10 @@ export default function ProjectDetailPage({ params }) {
         closeConfirm();
         try {
           await api.delete(`/tasks/projects/${id}/tasks/${task.id}/`);
+          toast.success(`"${task.title}" deleted.`);
           loadData();
         } catch (err) {
-          console.error('Delete failed:', err);
+          toast.error(parseApiError(err, 'Failed to delete task.'));
         }
       },
     });
@@ -172,10 +175,10 @@ export default function ProjectDetailPage({ params }) {
       setShowMemberModal(false);
       setMemberEmail('');
       setMemberRole('MEMBER');
+      toast.success('Member added successfully.');
       loadData();
     } catch (err) {
-      const data = err.response?.data;
-      setError(data?.detail || data?.email?.[0] || 'Failed to add member.');
+      setError(parseApiError(err, 'Failed to add member.'));
     }
     setSaving(false);
   };
@@ -192,8 +195,9 @@ export default function ProjectDetailPage({ params }) {
         closeConfirm();
         try {
           await api.delete(`/projects/${id}/members/${member.user.id}/`);
+          toast.success(`${member.user.name} removed from project.`);
           loadData();
-        } catch (err) { console.error(err); }
+        } catch (err) { toast.error(parseApiError(err, 'Failed to remove member.')); }
       },
     });
   };
@@ -201,8 +205,9 @@ export default function ProjectDetailPage({ params }) {
   const handleRoleChange = async (userId, newRole) => {
     try {
       await api.patch(`/projects/${id}/members/${userId}/`, { role: newRole });
+      toast.success('Role updated.');
       loadData();
-    } catch (err) { console.error(err); }
+    } catch (err) { toast.error(parseApiError(err, 'Failed to update role.')); }
   };
 
   const openEditTask = (task) => {

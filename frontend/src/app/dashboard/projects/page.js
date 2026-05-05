@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { useToast } from '@/context/ToastContext';
+import { parseApiError } from '@/lib/utils';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([]);
@@ -11,12 +13,15 @@ export default function ProjectsPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const toast = useToast();
 
   const loadProjects = async () => {
     try {
       const { data } = await api.get('/projects/');
       setProjects(Array.isArray(data) ? data : data.results || []);
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      toast.error(parseApiError(err, 'Failed to load projects.'));
+    }
     setLoading(false);
   };
 
@@ -31,9 +36,10 @@ export default function ProjectsPage() {
       await api.post('/projects/', form);
       setShowModal(false);
       setForm({ name: '', description: '' });
+      toast.success('Project created successfully.');
       loadProjects();
     } catch (err) {
-      setError(err.response?.data?.name?.[0] || 'Failed to create project.');
+      setError(parseApiError(err, 'Failed to create project.'));
     }
     setCreating(false);
   };

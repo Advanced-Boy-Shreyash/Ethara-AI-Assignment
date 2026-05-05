@@ -76,7 +76,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
         serializer = AddMemberSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = User.objects.get(email=serializer.validated_data['email'])
+        try:
+            user = User.objects.get(email=serializer.validated_data['email'])
+        except User.DoesNotExist:
+            return Response(
+                {'detail': 'No user found with this email address.', 'code': 'not_found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         if ProjectMember.objects.filter(user=user, project=project).exists():
             return Response(

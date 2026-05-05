@@ -164,11 +164,11 @@ select.input { cursor: pointer; appearance: none; background-image: url("data:im
 .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
 /* --- Toast --- */
-.toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .toast {
   padding: 12px 20px; border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 500;
-  animation: slideInRight 0.3s ease; min-width: 280px; display: flex; align-items: center; gap: 10px;
-  box-shadow: var(--shadow-md);
+  animation: slideInRight 0.3s ease; min-width: 320px; max-width: 480px; display: flex; align-items: center; gap: 10px;
+  box-shadow: var(--shadow-md); pointer-events: auto;
 }
 .toast-success { background: #065F46; color: #A7F3D0; border: 1px solid #10B981; }
 .toast-error { background: #881337; color: #FDA4AF; border: 1px solid #F43F5E; }

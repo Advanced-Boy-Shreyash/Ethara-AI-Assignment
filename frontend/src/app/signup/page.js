@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { parseApiError } from '@/lib/utils';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -24,13 +25,7 @@ export default function SignupPage() {
       await signup(name, email, password, confirmPassword);
       router.push('/dashboard');
     } catch (err) {
-      const data = err.response?.data;
-      if (data) {
-        const msg = typeof data === 'string' ? data : Object.values(data).flat().join(' ');
-        setError(msg);
-      } else {
-        setError('Something went wrong. Please try again.');
-      }
+      setError(parseApiError(err, 'Something went wrong. Please try again.'));
     }
     setLoading(false);
   };
